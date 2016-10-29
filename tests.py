@@ -1,9 +1,13 @@
 import fdp
 
-inputfile = r"Z:\PARSED\file_formats\nonstockreqs.xml"
+parsemap = r"C:\Users\jwinsley\Downloads\nonstockreqs.xml"
+inputfile = r"C:\Users\jwinsley\Downloads\Detail_LIVE.txt"
 
-with open(inputfile, "r") as inp:
-	xml = inp.read()
 
-root = fdp.Section(xml)
+parser = fdp.FileParser(parsemap)
 
+#print parser.root.debug()
+
+result = parser.parse(inputfile)
+
+print result
