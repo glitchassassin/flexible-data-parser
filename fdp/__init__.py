@@ -5,11 +5,13 @@ class FileParser(object):
 		self.pattern = pattern
 		self._rerun = True
 
+	def initialize(self):
 		# load pattern into objects
-		with open(pattern, "r") as inp:
+		with open(self.pattern, "r") as inp:
 			self.root = Section(inp.read())
 
 	def parse(self, filename):
+		self.initialize()
 		with open(filename, "r") as inp:
 			for line in inp:
 				while self._rerun:

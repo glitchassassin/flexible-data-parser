@@ -68,8 +68,10 @@ class Section(object):
 		# Check if section is done
 		if self.builder and self.current_line == 0:
 			if not self.repeats:
-				# End of non-repeating section. Return complete.
-				return ("complete", self.get_built())
+			#	 End of non-repeating section. Return complete.
+				to_return = self.get_built()
+				self.reset()
+				return ("complete", to_return)
 			else:
 				#print self.key, self.repeats
 				# End of repeating section. Add to builder list.
@@ -97,12 +99,26 @@ class Section(object):
 			# Line matches the exit regex. Tell the main loop to re-run this line.
 			#print "Exit regex found"
 			mark_line_for_rerun()
-			return ("complete", self.get_built())
+			to_return = self.get_built()
+			self.reset()
+			return ("complete", to_return)
 		else:
 			return ("partial", self.get_built())
 
 	def get_built(self):
+		if self.ignore:
+			return {}
 		return self.builder_list if self.repeats else self.builder
+
+	def reset(self):
+		self.builder = {}
+		if self.repeats:
+			# These Sections will be stored in either a dictionary or a list,
+			# depending on whether a key field has been defined for this section.
+			if self.key:
+				self.builder_list = {}
+			else:
+				self.builder_list = []
 
 	def debug(self, indent=""):
 		print indent + "--- Section debug ---"
@@ -119,11 +135,12 @@ class Section(object):
 class Line(object):
 	def __init__(self, xml):
 		root = ET.fromstring(xml)
+		self.ignore = True if "ignore" in root.attrib and root.attrib["ignore"].lower() == "true" else False
 		self.regex = re.compile(root.find("regex").text)
 		self.fields = [f.text for f in root.findall("fields/field")]
 		self.strip_fields = True
 		if self.regex.groups != len(self.fields):
-			raise ValueError("Number of capture groups in regex ({}) doesn't match the number of fields provided ({}). Regex:\n{}".format(self.regex.groups, len(self.fields), regex))
+			raise ValueError("Number of capture groups in regex ({}) doesn't match the number of fields provided ({}). Regex:\n{}".format(self.regex.groups, len(self.fields), self.regex.pattern))
 
 	def run(self, line, mark_line_for_rerun):
 		""" Compares `line` to the stored regex.
@@ -136,6 +153,8 @@ class Line(object):
 		"""
 		matches = self.regex.match(line)
 		if matches:
+			if self.ignore:
+				return ("complete", {})
 			result = {}
 			for key, field in enumerate(self.fields):
 				result[field] = matches.group(key+1)
