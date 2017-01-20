@@ -81,7 +81,7 @@ class Section(object):
 						key = self.builder
 						for k in self.key.split("|"):
 							key = key[k]
-					except KeyError:
+					except IndexError:
 						raise ValueError("Invalid key for {}: ({})".format(self.name, self.key))
 					# Key found. Add to list.
 					self.builder_list[key] = self.builder.copy()
@@ -92,14 +92,14 @@ class Section(object):
 					self.builder_list.append(self.builder.copy())
 					# Reset builder
 					self.builder = {}
+					#print "Adding to list ({})".format(len(self.builder_list))
 				return ("partial", self.get_built())
 
 		elif self.exit_regex is not None and self.exit_regex.match(line) is not None:
 			# Line matches the exit regex. Tell the main loop to re-run this line.
-			if self.current_line != 0 and type(self.contents[self.current_line]) is Section:
-				self.contents[self.current_line].complete()
+			#print "Exit regex found"
 			mark_line_for_rerun()
-			status, to_return = self.complete()
+			to_return = self.get_built()
 			self.reset()
 			return ("complete", to_return)
 		else:
@@ -112,7 +112,6 @@ class Section(object):
 
 	def reset(self):
 		self.builder = {}
-		self.current_line = 0
 		if self.repeats:
 			# These Sections will be stored in either a dictionary or a list,
 			# depending on whether a key field has been defined for this section.
@@ -120,35 +119,6 @@ class Section(object):
 				self.builder_list = {}
 			else:
 				self.builder_list = []
-
-	def complete(self):
-		if self.current_line != 0 and type(self.contents[self.current_line]) is Section:
-			self.contents[self.current_line].complete()
-
-		if self.repeats and self.builder:
-			# Clean up builder list
-			if self.key is not None:
-				# Keyed repeating section. Find the key!
-				try:
-					key = self.builder
-					for k in self.key.split("|"):
-						key = key[k]
-				except KeyError:
-					raise ValueError("Invalid key for {}: ({})".format(self.name, self.key))
-				# Key found. Add to list.
-				self.builder_list[key] = self.builder.copy()
-				# Reset builder
-				self.builder = {}
-			else:
-				# Non-keyed repeating section.
-				self.builder_list.append(self.builder.copy())
-				# Reset builder
-				self.builder = {}
-				#print "Adding to list ({})".format(len(self.builder_list))
-		#print self.builder_list
-		to_return = self.get_built()
-		self.reset()
-		return ("complete", to_return)
 
 	def debug(self, indent=""):
 		print indent + "--- Section debug ---"
@@ -189,17 +159,11 @@ class Line(object):
 			for key, field in enumerate(self.fields):
 				result[field] = matches.group(key+1)
 				if self.strip_fields:
-					try:
-						result[field] = result[field].strip()
-					except:
-						print line
-						print self.regex.pattern
-						print field
-						raise
+					result[field] = result[field].strip()
 			return ("complete", result)
 		return ("invalid", None)
 
-	def debug(self, indent=""):
+	def debug(self, indent):
 		print indent + "[[ Line debug ]]"
 		print indent + "  regex: {}".format(self.regex.pattern)
 		print indent + "  fields: ({})".format(", ".join(self.fields))
