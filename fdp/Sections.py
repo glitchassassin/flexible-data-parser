@@ -47,6 +47,10 @@ class Section(object):
 
 		# Run line
 		status, result = self.contents[self.current_line].run(line, mark_line_for_rerun)
+		#print("----------------")
+		#print(line)
+		#self.contents[self.current_line].debug()
+		#print(status, result)
 
 		# Update builder
 		if result:
@@ -81,7 +85,8 @@ class Section(object):
 						key = self.builder
 						for k in self.key.split("|"):
 							key = key[k]
-					except IndexError:
+					except KeyError:
+						print(self.builder)
 						raise ValueError("Invalid key for {}: ({})".format(self.name, self.key))
 					# Key found. Add to list.
 					self.builder_list[key] = self.builder.copy()
@@ -112,6 +117,7 @@ class Section(object):
 
 	def reset(self):
 		self.builder = {}
+		self.current_line = 0
 		if self.repeats:
 			# These Sections will be stored in either a dictionary or a list,
 			# depending on whether a key field has been defined for this section.
@@ -121,16 +127,16 @@ class Section(object):
 				self.builder_list = []
 
 	def debug(self, indent=""):
-		print indent + "--- Section debug ---"
-		print indent + "  name: {}".format(self.name)
-		print indent + "  repeats: {}".format(self.repeats)
-		print indent + "  key: {}".format(self.key)
-		print indent + "  ignore: {}".format(self.ignore)
-		print indent + "  Exit regex: {}".format(self.exit_regex.pattern if self.exit_regex is not None else "")
-		print indent + "  Contents:\n"
+		print(indent + "--- Section debug ---")
+		print(indent + "  name: {}".format(self.name))
+		print(indent + "  repeats: {}".format(self.repeats))
+		print(indent + "  key: {}".format(self.key))
+		print(indent + "  ignore: {}".format(self.ignore))
+		print(indent + "  Exit regex: {}".format(self.exit_regex.pattern if self.exit_regex is not None else ""))
+		print(indent + "  Contents:\n")
 		for c in self.contents:
 			c.debug(indent+"\t")
-		print indent + "---"
+		print(indent + "---")
 
 class Line(object):
 	def __init__(self, xml):
@@ -160,11 +166,13 @@ class Line(object):
 				result[field] = matches.group(key+1)
 				if self.strip_fields:
 					result[field] = result[field].strip()
+			#print(line)
+			#print(result)
 			return ("complete", result)
 		return ("invalid", None)
 
-	def debug(self, indent):
-		print indent + "[[ Line debug ]]"
-		print indent + "  regex: {}".format(self.regex.pattern)
-		print indent + "  fields: ({})".format(", ".join(self.fields))
-		print indent + "[[]]\n"
+	def debug(self, indent=""):
+		print(indent + "[[ Line debug ]]")
+		print(indent + "  regex: {}".format(self.regex.pattern))
+		print(indent + "  fields: ({})".format(", ".join(self.fields)))
+		print(indent + "[[]]\n")

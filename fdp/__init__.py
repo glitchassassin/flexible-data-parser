@@ -13,10 +13,15 @@ class FileParser(object):
 	def parse(self, filename):
 		self.initialize()
 		with open(filename, "r") as inp:
-			for line in inp:
+			for line_num, line in enumerate(inp):
 				while self._rerun:
 					self._rerun = False
-					status, result = self.root.run(line, self._rerun_line)
+					try:
+						status, result = self.root.run(line, self._rerun_line)
+					except ValueError:
+						print(line_num)
+						print(line)
+						raise
 					#print "{}\n\n(Status, Result, Rerun) = ({}, {}, {})".format(line, status, result, self._rerun)
 				if status == "complete":
 					break
