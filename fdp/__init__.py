@@ -26,6 +26,7 @@ class FileParser(object):
 				if status == "complete":
 					break
 				self._rerun = True
+		result = self.root.finalize()
 		return result
 
 	def _rerun_line(self):

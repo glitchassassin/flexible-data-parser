@@ -47,10 +47,6 @@ class Section(object):
 
 		# Run line
 		status, result = self.contents[self.current_line].run(line, mark_line_for_rerun)
-		#print("----------------")
-		#print(line)
-		#self.contents[self.current_line].debug()
-		#print(status, result)
 
 		# Update builder
 		if result:
@@ -63,6 +59,13 @@ class Section(object):
 				self.builder.update(result)
 			else:
 				raise TypeError("Invalid contents")
+		
+		# if "Mnemonic" in self.builder and self.builder["Mnemonic"] == "102557":
+		# 	print("----------------")
+		# 	print(line)
+		# 	self.contents[self.current_line].debug()
+		# 	print(self.builder)
+		# 	print(status, result)
 
 		# Update line pointer
 		if status == "complete":
@@ -109,6 +112,39 @@ class Section(object):
 			return ("complete", to_return)
 		else:
 			return ("partial", self.get_built())
+	
+	def finalize(self):
+		# Parser reached end of file, wrap up any remaining builders
+		if self.builder:
+			if not self.repeats:
+			#	 End of non-repeating section. Return complete.
+				to_return = self.get_built()
+				self.reset()
+				return to_return
+			else:
+				# End of repeating section. Add to builder list.
+				if self.key is not None:
+					# Keyed repeating section. Find the key!
+					try:
+						key = self.builder
+						for k in self.key.split("|"):
+							key = key[k]
+					except KeyError:
+						print(self.builder)
+						raise ValueError("Invalid key for {}: ({})".format(self.name, self.key))
+					# Key found. Add to list.
+					self.builder_list[key] = self.builder.copy()
+					# Reset builder
+					self.builder = {}
+					return self.get_built()
+				else:
+					# Non-keyed repeating section.
+					self.builder_list.append(self.builder.copy())
+					# Reset builder
+					self.builder = {}
+					return self.get_built()
+		# No builder in progress - return existing data
+		return self.get_built()
 
 	def get_built(self):
 		if self.ignore:
