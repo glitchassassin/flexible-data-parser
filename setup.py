@@ -1,7 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name="Flexible Data Parser",
+    name="flexible-data-parser",
     description="A configurable semi-structured data parser",
     long_description=open("readme.md").read(),
     url="https://github.com/glitchassassin/flexible-data-parser",
@@ -16,5 +16,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
-    keywords="data parse"
+    keywords="data parse",
+    packages=find_packages()
 )
