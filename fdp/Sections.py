@@ -47,7 +47,6 @@ class Section(object):
 
 		# Run line
 		status, result = self.contents[self.current_line].run(line, mark_line_for_rerun)
-
 		# Update builder
 		if result:
 			# Add results to builder dict

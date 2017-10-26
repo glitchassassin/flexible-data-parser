@@ -1,0 +1,29 @@
+<section name="charges" key="Mnemonic">
+	<repeat-until>
+	</repeat-until>
+	<line>
+		<regex>\s+Mnemonic (.{14}) Name (.{33}) Active(.+)</regex>
+		<fields>
+			<field>Mnemonic</field>
+			<field>Name</field>
+			<field>Active</field>
+		</fields>
+	</line>
+	<line ignore="True">
+		<regex>\s+O\/D      Expression    Override Expression \s{43} Value</regex>
+	</line>
+	<section name="stats" optional="True">
+		<repeat-until>
+			<regex>\s+Txn Detail</regex>
+		</repeat-until>
+		<line optional="True">
+			<regex>\s{9} (.{2}) \s{5} (.{13}) (.{63}) (.+)</regex>
+			<fields>
+				<field>StatsOD</field>
+				<field>StatsExpression</field>
+				<field>StatsOverrideExpression</field>
+				<field>StatsValue</field>
+			</fields>
+		</line>
+	</section>
+</section>
